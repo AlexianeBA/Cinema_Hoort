@@ -20,4 +20,5 @@ db.sqlite3
 # Fichiers de migration Django compilés
 *.pyc
 
-
+# Fichiers de migration Django
+migrations/
