@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: cinema_db
+      POSTGRES_USER: cinema_user
+      POSTGRES_PASSWORD: user
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build:
+      context: ./cinema
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./cinema:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./cinema/.env
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+    
