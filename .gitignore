@@ -4,6 +4,7 @@
 # Cache Poetry
 .poetry/
 
+
 # Fichiers Python compilés
 __pycache__/
 *.py[cod]
@@ -18,3 +19,5 @@ db.sqlite3
 
 # Fichiers de migration Django compilés
 *.pyc
+
+
