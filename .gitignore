@@ -1,0 +1,20 @@
+# Poetry virtual environments (souvent créés en dehors du projet)
+**/.venv/
+
+# Cache Poetry
+.poetry/
+
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+# Fichiers de configuration de l'environnement
+.env
+
+# Fichiers de base de données SQLite
+db.sqlite3
+
+# Fichiers de migration Django compilés
+*.pyc
