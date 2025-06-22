@@ -20,6 +20,11 @@ class MovieViewSet(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
 
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update']:
+            return [IsAuthenticated(), IsAuthor()]
+        return super().get_permissions()
+
     @action(detail=False, methods=["get"], url_path="by-status")
     def get_movies_by_status(self, request):
         status_param = request.query_params.get("status")
@@ -38,6 +43,7 @@ class MovieViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "Movie not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
 
     def update(self, request, pk=None):
         movie = self.get_object()
@@ -73,6 +79,11 @@ class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.filter(role="author")
     serializer_class = UserSerializer
 
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsAuthor()]
+        return super().get_permissions()
+    
     def retrieve(self, request, pk=None):
         author = self.get_object()
         serializer = self.get_serializer(author)
@@ -107,6 +118,10 @@ class SpectatorViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.filter(role="spectator")
     serializer_class = UserSerializer
 
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated()]
+        return super().get_permissions()
     def retrieve(self, request, pk=None):
         spectator = self.get_object()
         serializer = self.get_serializer(spectator)
@@ -184,6 +199,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         favorites = Favorite.objects.filter(spectator=request.user)
         serializer = FavoriteSerializer(favorites, many=True)
         return Response({"favorites": serializer.data}, status=status.HTTP_200_OK)
+    
 
 
 class RatingViewSet(viewsets.ModelViewSet):
