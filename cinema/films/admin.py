@@ -48,7 +48,7 @@ class UsersAdmin(admin.ModelAdmin):
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
     list_display = ['title', 'author', 'release_date', 'status', 'rating', 'genres', 'original_title', 'original_language']
-    list_filter = ['status', 'release_date', 'author']
+    list_filter = ['status', 'release_date', 'rating']
     search_fields = ['title', 'description']
 
 @admin.register(Rating)
