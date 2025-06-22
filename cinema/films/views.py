@@ -86,7 +86,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
         author = self.get_object()
         if Movie.objects.filter(author=author).exists():
             return Response(
-                {"error": "Impossible de supprimer cet auteur : des films lui sont associés."},
+                {"error": "Cannot delete this author: at least one film is associated with him."},
                 status=status.HTTP_400_BAD_REQUEST
             )
         author.delete()
@@ -95,6 +95,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
 class SpectatorViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.filter(role='spectator')
     serializer_class = UserSerializer
+
     def retrieve(self, request, pk=None):
         spectator = self.get_object()
         serializer = self.get_serializer(spectator)
@@ -110,11 +111,6 @@ class SpectatorViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, pk=None):
         spectator = self.get_object()
-        if Movie.objects.filter(spectator=spectator).exists():
-            return Response(
-                {"error": "Impossible de supprimer ce spectateur : des films lui sont associés."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         spectator.delete()
         return Response({"message": "Spectator deleted"}, status=status.HTTP_204_NO_CONTENT)
 
@@ -178,3 +174,19 @@ class RatingViewSet(viewsets.ModelViewSet):
         )
         return Response({"message": "Rating added", "rating": RatingSerializer(rating).data}, status=status.HTTP_201_CREATED)
 
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = Users.objects.all()
+    serializer_class = UserSerializer
+
+    @action(detail=False, methods=['post'], url_path='register', permission_classes=[AllowAny])
+    def register(self, request):
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            user = serializer.save()
+            if 'password' in data:
+                user.set_password(data['password'])
+                user.save()
+            return Response({"message": "User registered successfully", "user": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

@@ -5,8 +5,9 @@ class UserSerializer(serializers.ModelSerializer):
     favorite_movies = serializers.SerializerMethodField()
     class Meta:
         model = Users
-        fields = ['id', 'username', 'email', 'role', 'bio', 'avatar', 'source', 'favorite_movies']
-        read_only_fields = ['id', 'username', 'email']
+        fields = ['id', 'username', 'email', 'role', 'bio', 'avatar', 'source', 'favorite_movies', 'password']
+        read_only_fields = ['id']
+        extra_kwargs = {'password': {'write_only': True}}
 
     def get_favorite_movies(self, obj):
         favorites = Favorite.objects.filter(spectator=obj)

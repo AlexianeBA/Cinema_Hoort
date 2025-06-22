@@ -22,7 +22,7 @@ from rest_framework_simplejwt.views import (
 )
 from rest_framework.routers import DefaultRouter
 
-from films.views import MovieViewSet,RatingViewSet, AuthorViewSet, SpectatorViewSet, FavoriteViewSet
+from films.views import UserViewSet, MovieViewSet,RatingViewSet, AuthorViewSet, SpectatorViewSet, FavoriteViewSet
 
 
 
@@ -32,7 +32,7 @@ router.register(r'authors', AuthorViewSet, basename='author')
 router.register(r'favorites', FavoriteViewSet, basename='favorite')
 router.register(r'spectators', SpectatorViewSet, basename='spectator')
 router.register(r'rating', RatingViewSet, basename='rating')
-
+router.register(r'users', UserViewSet, basename='user')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
