@@ -95,20 +95,28 @@ class AuthorViewSet(viewsets.ModelViewSet):
 class SpectatorViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.filter(role='spectator')
     serializer_class = UserSerializer
-    def register(self, request):
-        serializer = UserSerializer(data=request.data)
+    def retrieve(self, request, pk=None):
+        spectator = self.get_object()
+        serializer = self.get_serializer(spectator)
+        return Response({"spectator": serializer.data})
+
+    def update(self, request, pk=None):
+        spectator = self.get_object()
+        serializer = self.get_serializer(spectator, data=request.data, partial=True)
         if serializer.is_valid():
-            user = serializer.save(role='spectator')
-            return Response({"message": "Spectator registered successfully", "user": serializer.data}, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response({"message": "Spectator updated", "spectator": serializer.data})
         return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    def refresh_token(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data.get('username')
-            return Response({"message": "Token refreshed successfully", "user": user}, status=status.HTTP_200_OK)
-        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
+    def destroy(self, request, pk=None):
+        spectator = self.get_object()
+        if Movie.objects.filter(spectator=spectator).exists():
+            return Response(
+                {"error": "Impossible de supprimer ce spectateur : des films lui sont associés."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        spectator.delete()
+        return Response({"message": "Spectator deleted"}, status=status.HTTP_204_NO_CONTENT)
 
 class FavoriteViewSet(viewsets.ModelViewSet):
     queryset = Favorite.objects.all()
@@ -122,14 +130,15 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         return Response({"message": "Movie is already in favorites"}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['delete'], url_path='remove', permission_classes=[IsAuthenticated])
-    def remove_from_favorites(self, request, pk=None):
-        movie = self.get_object()
+    def remove_movie_from_favorites(self, request, pk=None):
+        movie = Movie.objects.get(pk=pk)
         favorite = Favorite.objects.filter(spectator=request.user, movie=movie).first()
         if favorite:
             favorite.delete()
             return Response({"message": "Movie removed from favorites"}, status=status.HTTP_204_NO_CONTENT)
         return Response({"message": "Movie is not in favorites"}, status=status.HTTP_404_NOT_FOUND)
-
+    
+    @action(detail=False, methods=['get'], url_path='my-favorites', permission_classes=[IsAuthenticated])
     def get_favorite_movies(self, request):
         favorites = Favorite.objects.filter(spectator=request.user)
         serializer = FavoriteSerializer(favorites, many=True)
@@ -139,8 +148,33 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 class RatingViewSet(viewsets.ModelViewSet):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
-    def add_rating_to_movie():
-        pass
-    def add_rating_to_author():
-        pass
+    @action(detail=True, methods=['post'], url_path='add-to-movie', permission_classes=[IsAuthenticated])
+    def add_rating_to_movie(self, request, pk=None):
+        movie = Movie.objects.get(pk=pk)
+        rating_value = request.data.get('rating')
+        if not rating_value:
+            return Response({"error": "Rating value is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        rating = Rating.objects.create(
+        movie=movie,
+        author=movie.author,
+        spectator=request.user,
+        rating=rating_value
+    )
+        return Response({"message": "Rating added", "rating": RatingSerializer(rating).data}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='add-to-author', permission_classes=[IsAuthenticated])
+    def add_rating_to_author(self, request, pk=None):
+        author = Users.objects.get(pk=pk)
+        rating_value = request.data.get('rating')
+        if not rating_value:
+            return Response({"error": "Rating value is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        rating = Rating.objects.create(
+            author=author,
+            spectator=request.user,
+            movie=None,
+            rating=rating_value
+        )
+        return Response({"message": "Rating added", "rating": RatingSerializer(rating).data}, status=status.HTTP_201_CREATED)
 
