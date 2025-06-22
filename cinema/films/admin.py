@@ -8,7 +8,7 @@ from .models import Users, Movie, Rating, Favorite
 class MovieInline(admin.TabularInline):
     model = Movie
     extra = 0
-    fields = ['title', 'release_date', 'status', 'rating']
+    fields = ['title', 'release_date', 'status', 'rating', 'state']
     show_change_link = True
 
 class RatingInline(admin.TabularInline):
@@ -49,7 +49,7 @@ class UsersAdmin(admin.ModelAdmin):
 class MovieAdmin(admin.ModelAdmin):
     list_display = ['title', 'author', 'release_date', 'status', 'rating', 'genres', 'original_title', 'original_language']
     list_filter = ['status', 'release_date', 'rating']
-    search_fields = ['title', 'description']
+    search_fields = ['title', 'overview']
 
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):

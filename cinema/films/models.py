@@ -58,7 +58,7 @@ class Movie(models.Model):
     genres = models.CharField(max_length=100, null=True, blank=True)
     original_title = models.CharField(max_length=100, null=True, blank=True)
     original_language = models.CharField(max_length=10, null=True, blank=True)
-
+    state = models.CharField(max_length=20, default='active')
     class Meta:
         unique_together = ('title', 'status', 'release_date', 'author')
     def __str__(self):
