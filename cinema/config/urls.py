@@ -14,30 +14,27 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
-from django.urls import path, include
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
 
-from films.views import UserViewSet, MovieViewSet,RatingViewSet, AuthorViewSet, SpectatorViewSet, FavoriteViewSet
-
-
+from films.views import (AuthorViewSet, FavoriteViewSet, MovieViewSet,
+                         RatingViewSet, SpectatorViewSet, UserViewSet)
 
 router = DefaultRouter()
-router.register(r'movies', MovieViewSet, basename='movie')
-router.register(r'authors', AuthorViewSet, basename='author')
-router.register(r'favorites', FavoriteViewSet, basename='favorite')
-router.register(r'spectators', SpectatorViewSet, basename='spectator')
-router.register(r'rating', RatingViewSet, basename='rating')
-router.register(r'users', UserViewSet, basename='user')
+router.register(r"movies", MovieViewSet, basename="movie")
+router.register(r"authors", AuthorViewSet, basename="author")
+router.register(r"favorites", FavoriteViewSet, basename="favorite")
+router.register(r"spectators", SpectatorViewSet, basename="spectator")
+router.register(r"rating", RatingViewSet, basename="rating")
+router.register(r"users", UserViewSet, basename="user")
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/', include(router.urls)),
+    path("admin/", admin.site.urls),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
-

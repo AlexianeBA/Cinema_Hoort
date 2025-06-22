@@ -1,13 +1,26 @@
 from rest_framework import serializers
-from .models import Users, Movie, Rating, Favorite
+
+from .models import Favorite, Movie, Rating, Users
+
 
 class UserSerializer(serializers.ModelSerializer):
     favorite_movies = serializers.SerializerMethodField()
+
     class Meta:
         model = Users
-        fields = ['id', 'username', 'email', 'role', 'bio', 'avatar', 'source', 'favorite_movies', 'password']
-        read_only_fields = ['id']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = [
+            "id",
+            "username",
+            "email",
+            "role",
+            "bio",
+            "avatar",
+            "source",
+            "favorite_movies",
+            "password",
+        ]
+        read_only_fields = ["id"]
+        extra_kwargs = {"password": {"write_only": True}}
 
     def get_favorite_movies(self, obj):
         favorites = Favorite.objects.filter(spectator=obj)
@@ -19,8 +32,20 @@ class MovieSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Movie
-        fields = ['id', 'title', 'overview', 'release_date', 'rating', 'status', 'author', 'source', 'genres', 'original_title', 'original_language']
-        read_only_fields = ['id', 'author']
+        fields = [
+            "id",
+            "title",
+            "overview",
+            "release_date",
+            "rating",
+            "status",
+            "author",
+            "source",
+            "genres",
+            "original_title",
+            "original_language",
+        ]
+        read_only_fields = ["id", "author"]
 
 
 class RatingSerializer(serializers.ModelSerializer):
@@ -30,8 +55,8 @@ class RatingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rating
-        fields = ['id', 'spectator', 'movie', 'author', 'rating']
-        read_only_fields = ['id', 'spectator', 'movie', 'author']
+        fields = ["id", "spectator", "movie", "author", "rating"]
+        read_only_fields = ["id", "spectator", "movie", "author"]
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -40,7 +65,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
-        fields = ['id', 'spectator', 'movie']
-        read_only_fields = ['id', 'spectator', 'movie']
-        unique_together = ('spectator', 'movie')
-
+        fields = ["id", "spectator", "movie"]
+        read_only_fields = ["id", "spectator", "movie"]
+        unique_together = ("spectator", "movie")
