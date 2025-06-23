@@ -21,7 +21,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
 
-from films.views import (AuthorViewSet, FavoriteViewSet, MovieViewSet,
+from films.views import (AuthorViewSet, FavoriteViewSet, LogoutView, MovieViewSet,
                          RatingViewSet, SpectatorViewSet, UserViewSet)
 
 router = DefaultRouter()
@@ -37,4 +37,5 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
 ]
