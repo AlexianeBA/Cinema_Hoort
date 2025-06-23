@@ -1,9 +1,10 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 
 # Register your models here.
-from .models import Author, AuthorRating, Favorite, Movie, Rating, Spectator, Users
+from .models import (Author, AuthorRating, Favorite, Movie, Rating, Spectator,
+                     Users)
 
-from django.contrib.admin import SimpleListFilter
 
 class HasMoviesFilter(SimpleListFilter):
     title = "has at least one movie"
@@ -21,11 +22,15 @@ class HasMoviesFilter(SimpleListFilter):
         if self.value() == "no":
             return queryset.filter(movies__isnull=True)
         return queryset
+
+
 class MovieInline(admin.TabularInline):
     model = Movie
     extra = 0
     fields = ["title", "release_date", "status", "rating", "state"]
     show_change_link = True
+
+
 class MovieAuthorsInline(admin.TabularInline):
     model = Movie.authors.through
     extra = 0
@@ -34,23 +39,28 @@ class MovieAuthorsInline(admin.TabularInline):
     fields = ["movie"]
     show_change_link = True
 
+
 class MovieRatingInline(admin.TabularInline):
     model = Rating
     fk_name = "movie"
     extra = 0
     fields = ["spectator", "rating"]
     show_change_link = True
+
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == "spectator":
             kwargs["queryset"] = Users.objects.filter(role="spectator")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+
 class SpectatorRatingMovieInline(admin.TabularInline):
     model = Rating
-    fk_name = "spectator" 
+    fk_name = "spectator"
     extra = 0
     fields = ["movie", "rating"]
     show_change_link = True
+
+
 class AuthorRatingInline(admin.TabularInline):
     model = AuthorRating
     fk_name = "author"
@@ -64,6 +74,8 @@ class AuthorRatingInline(admin.TabularInline):
         if db_field.name == "author":
             kwargs["queryset"] = Users.objects.filter(role="author")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 class AuthorInline(admin.TabularInline):
     model = Movie.authors.through
     extra = 0
@@ -71,16 +83,19 @@ class AuthorInline(admin.TabularInline):
     verbose_name_plural = "Authors"
     fields = ["users"]
 
+
 class FavoriteInline(admin.TabularInline):
     model = Favorite
     fk_name = "spectator"
     extra = 0
     fields = ["movie"]
     show_change_link = True
+
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == "spectator":
             kwargs["queryset"] = Users.objects.filter(role="spectator")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
@@ -89,19 +104,22 @@ class AuthorAdmin(admin.ModelAdmin):
     inlines = [MovieAuthorsInline]
 
     search_fields = ["username", "email"]
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(role="author")
-    
+
 
 @admin.register(Spectator)
 class SpectatorAdmin(admin.ModelAdmin):
     list_display = ["username", "email", "is_staff"]
     inlines = [FavoriteInline, SpectatorRatingMovieInline]
     search_fields = ["username", "email"]
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(role="spectator")
+
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
@@ -121,9 +139,8 @@ class MovieAdmin(admin.ModelAdmin):
 
     def get_authors(self, obj):
         return ", ".join([a.username for a in obj.authors.all()])
+
     get_authors.short_description = "Authors movie"
-
-
 
 
 @admin.register(Rating)

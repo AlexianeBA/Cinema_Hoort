@@ -42,15 +42,13 @@ class Command(BaseCommand):
                 # Get director information
                 credits = get_tmdb_data(f"movie/{movie_id}/credits")
                 crew = credits.get("crew", [])
-                directors = [
-                    person for person in crew if person["job"] == "Director"
-                ]
+                directors = [person for person in crew if person["job"] == "Director"]
 
                 # Create or get the user and movie objects
                 users = []
                 if directors:
                     director = directors[0]
-                    director_name = director['name']
+                    director_name = director["name"]
                     director_id = director["id"]
                     username = director_name.lower().replace(" ", "_")
 
@@ -73,10 +71,11 @@ class Command(BaseCommand):
                         user.save()
                     users.append(user)
                     if created_user:
-                        self.stdout.write(self.style.SUCCESS(f"Created author: {director_name}"))
+                        self.stdout.write(
+                            self.style.SUCCESS(f"Created author: {director_name}")
+                        )
                     # Create or get the movie object
                     movie_obj, created_movie = Movie.objects.get_or_create(
-                        
                         title=title,
                         status=status,
                         release_date=release_date,

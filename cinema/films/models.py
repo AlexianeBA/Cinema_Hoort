@@ -86,6 +86,7 @@ class Rating(models.Model):
 
     rating = models.IntegerField(choices=Movie.RATING_CHOICES)
 
+
 class AuthorRating(models.Model):
     spectator = models.ForeignKey(
         Users,
@@ -107,7 +108,8 @@ class AuthorRating(models.Model):
 
     def __str__(self):
         return f"{self.spectator.username} → {self.author.username}: {self.rating}"
-    
+
+
 class Favorite(models.Model):
     spectator = models.ForeignKey(
         Users,
@@ -129,6 +131,7 @@ class Author(Users):
         proxy = True
         verbose_name = "Author"
         verbose_name_plural = "Authors"
+
 
 class Spectator(Users):
     class Meta:

@@ -1,15 +1,16 @@
-from rest_framework import status, viewsets, filters
-from rest_framework.views import APIView
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (AllowAny, BasePermission,
                                         IsAuthenticated)
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import AuthorRating, Favorite, Movie, Rating, Users
-from .serializers import (FavoriteSerializer, MovieSerializer, RatingAuthorSerializer,
-                          RatingSerializer, UserSerializer)
+from .serializers import (FavoriteSerializer, MovieSerializer,
+                          RatingAuthorSerializer, RatingSerializer,
+                          UserSerializer)
 
-from rest_framework_simplejwt.tokens import RefreshToken
 # Create your views here.
 
 
@@ -31,9 +32,9 @@ class MovieViewSet(viewsets.ModelViewSet):
         if source in ["manual", "tmdb"]:
             queryset = queryset.filter(source=source)
         return queryset
-    
+
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy']:
+        if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsAuthor()]
         return super().get_permissions()
 
@@ -46,7 +47,6 @@ class MovieViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(movies, many=True)
         return Response({"count": len(serializer.data), "results": serializer.data})
 
-
     def retrieve(self, request, pk=None):
         try:
             movie = self.get_object()
@@ -56,7 +56,6 @@ class MovieViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "Movie not found"}, status=status.HTTP_404_NOT_FOUND
             )
-
 
     def update(self, request, pk=None):
         movie = self.get_object()
@@ -68,8 +67,6 @@ class MovieViewSet(viewsets.ModelViewSet):
             {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    
-    
     @action(
         detail=True,
         methods=["patch"],
@@ -100,12 +97,12 @@ class AuthorViewSet(viewsets.ModelViewSet):
         if source in ["manual", "tmdb"]:
             queryset = queryset.filter(source=source)
         return queryset
-    
+
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy']:
+        if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsAuthor()]
         return super().get_permissions()
-    
+
     def retrieve(self, request, pk=None):
         author = self.get_object()
         serializer = self.get_serializer(author)
@@ -141,9 +138,10 @@ class SpectatorViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy']:
+        if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated()]
         return super().get_permissions()
+
     def retrieve(self, request, pk=None):
         spectator = self.get_object()
         serializer = self.get_serializer(spectator)
@@ -206,7 +204,10 @@ class FavoriteViewSet(viewsets.ModelViewSet):
             favorites = Favorite.objects.filter(spectator=request.user)
             serializer = FavoriteSerializer(favorites, many=True)
             return Response(
-                {"message": "Movie removed from favorites", "favorites": serializer.data},
+                {
+                    "message": "Movie removed from favorites",
+                    "favorites": serializer.data,
+                },
                 status=status.HTTP_204_NO_CONTENT,
             )
         return Response(
@@ -223,12 +224,12 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         favorites = Favorite.objects.filter(spectator=request.user)
         serializer = FavoriteSerializer(favorites, many=True)
         return Response({"favorites": serializer.data}, status=status.HTTP_200_OK)
-    
 
 
 class RatingViewSet(viewsets.ModelViewSet):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
+
     @action(
         detail=True,
         methods=["post"],
@@ -253,7 +254,6 @@ class RatingViewSet(viewsets.ModelViewSet):
             {"message": "Rating added", "rating": RatingSerializer(rating).data},
             status=status.HTTP_201_CREATED,
         )
-   
 
     @action(
         detail=True,
@@ -304,7 +304,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(
             {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
         )
-    
+
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
