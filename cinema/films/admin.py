@@ -1,9 +1,26 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import AuthorRating, Favorite, Movie, Rating, Users
+from .models import Author, AuthorRating, Favorite, Movie, Rating, Spectator, Users
 
+from django.contrib.admin import SimpleListFilter
 
+class HasMoviesFilter(SimpleListFilter):
+    title = "has at least one movie"
+    parameter_name = "has_movies"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", "Yes"),
+            ("no", "No"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(movies__isnull=False).distinct()
+        if self.value() == "no":
+            return queryset.filter(movies__isnull=True)
+        return queryset
 class MovieInline(admin.TabularInline):
     model = Movie
     extra = 0
@@ -27,6 +44,13 @@ class MovieRatingInline(admin.TabularInline):
         if db_field.name == "spectator":
             kwargs["queryset"] = Users.objects.filter(role="spectator")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+class SpectatorRatingMovieInline(admin.TabularInline):
+    model = Rating
+    fk_name = "spectator" 
+    extra = 0
+    fields = ["movie", "rating"]
+    show_change_link = True
 class AuthorRatingInline(admin.TabularInline):
     model = AuthorRating
     fk_name = "author"
@@ -58,32 +82,26 @@ class FavoriteInline(admin.TabularInline):
             kwargs["queryset"] = Users.objects.filter(role="spectator")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+@admin.register(Author)
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ["username", "email", "is_staff"]
+    list_filter = [HasMoviesFilter]
+    inlines = [MovieAuthorsInline]
+    
+    search_fields = ["username", "email"]
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(role="author")
+    
 
-@admin.register(Users)
-class UsersAdmin(admin.ModelAdmin):
-    list_display = ["username", "email", "role", "is_staff"]
-    list_filter = ["role", "is_staff"]
-
-    inlines = []
-
-    def get_inlines(self, request, obj):
-        """Retourne dynamiquement les inlines selon le rôle"""
-        if obj and obj.role == "author":
-            return [MovieAuthorsInline]
-        elif obj and obj.role == "spectator":
-            return [AuthorRatingInline, FavoriteInline, MovieRatingInline]
-        return []
-
-    def change_view(self, request, object_id, form_url="", extra_context=None):
-        self.inlines = self.get_inlines(request, self.model.objects.get(pk=object_id))
-        return super().change_view(request, object_id, form_url, extra_context)
-    def get_inlines(self, request, obj):
-        if obj and obj.role == "author":
-            return [MovieAuthorsInline]
-        elif obj and obj.role == "spectator":
-            return [AuthorRatingInline, FavoriteInline]
-        return []
-
+@admin.register(Spectator)
+class SpectatorAdmin(admin.ModelAdmin):
+    list_display = ["username", "email", "is_staff"]
+    inlines = [FavoriteInline, SpectatorRatingMovieInline]
+    search_fields = ["username", "email"]
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(role="spectator")
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):

@@ -183,8 +183,10 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         favorite = Favorite.objects.filter(spectator=request.user, movie=movie).first()
         if favorite:
             favorite.delete()
+            favorites = Favorite.objects.filter(spectator=request.user)
+            serializer = FavoriteSerializer(favorites, many=True)
             return Response(
-                {"message": "Movie removed from favorites"},
+                {"message": "Movie removed from favorites", "favorites": serializer.data},
                 status=status.HTTP_204_NO_CONTENT,
             )
         return Response(

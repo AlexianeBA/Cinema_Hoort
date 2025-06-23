@@ -121,3 +121,16 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.spectator.username} - {self.movie.title}"
+
+
+class Author(Users):
+    class Meta:
+        proxy = True
+        verbose_name = "Author"
+        verbose_name_plural = "Authors"
+
+class Spectator(Users):
+    class Meta:
+        proxy = True
+        verbose_name = "Spectator"
+        verbose_name_plural = "Spectators"
