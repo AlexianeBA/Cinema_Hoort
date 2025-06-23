@@ -4,8 +4,8 @@ from rest_framework.permissions import (AllowAny, BasePermission,
                                         IsAuthenticated)
 from rest_framework.response import Response
 
-from .models import Favorite, Movie, Rating, Users
-from .serializers import (FavoriteSerializer, MovieSerializer,
+from .models import AuthorRating, Favorite, Movie, Rating, Users
+from .serializers import (FavoriteSerializer, MovieSerializer, RatingAuthorSerializer,
                           RatingSerializer, UserSerializer)
 
 # Create your views here.
@@ -55,6 +55,8 @@ class MovieViewSet(viewsets.ModelViewSet):
             {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
         )
 
+    
+    
     @action(
         detail=True,
         methods=["patch"],
@@ -101,7 +103,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, pk=None):
         author = self.get_object()
-        if Movie.objects.filter(author=author).exists():
+        if Movie.objects.filter(authors=author).exists():
             return Response(
                 {
                     "error": "Cannot delete this author: at least one film is associated with him."
@@ -205,7 +207,6 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 class RatingViewSet(viewsets.ModelViewSet):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
-
     @action(
         detail=True,
         methods=["post"],
@@ -223,7 +224,6 @@ class RatingViewSet(viewsets.ModelViewSet):
 
         rating = Rating.objects.create(
             movie=movie,
-            author=movie.author,
             spectator=request.user,
             rating=rating_value,
         )
@@ -231,6 +231,7 @@ class RatingViewSet(viewsets.ModelViewSet):
             {"message": "Rating added", "rating": RatingSerializer(rating).data},
             status=status.HTTP_201_CREATED,
         )
+   
 
     @action(
         detail=True,
@@ -247,11 +248,11 @@ class RatingViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        rating = Rating.objects.create(
-            author=author, spectator=request.user, movie=None, rating=rating_value
+        rating = AuthorRating.objects.create(
+            author=author, spectator=request.user, rating=rating_value
         )
         return Response(
-            {"message": "Rating added", "rating": RatingSerializer(rating).data},
+            {"message": "Rating added", "rating": RatingAuthorSerializer(rating).data},
             status=status.HTTP_201_CREATED,
         )
 

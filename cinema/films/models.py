@@ -53,11 +53,11 @@ class Movie(models.Model):
     release_date = models.DateField()
     rating = models.IntegerField(choices=RATING_CHOICES)
     status = models.CharField(choices=STATUS_CHOICES)
-    author = models.ForeignKey(
+    authors = models.ManyToManyField(
         Users,
-        on_delete=models.CASCADE,
         related_name="movies",
         limit_choices_to={"role": "author"},
+        blank=True,
     )
     source = models.CharField(max_length=100, choices=SOURCE_CHOICES, default="tmdb")
     genres = models.CharField(max_length=100, null=True, blank=True)
@@ -66,7 +66,7 @@ class Movie(models.Model):
     state = models.CharField(max_length=20, default="active")
 
     class Meta:
-        unique_together = ("title", "status", "release_date", "author")
+        unique_together = ("title", "status", "release_date")
 
     def __str__(self):
         return self.title
@@ -82,15 +82,31 @@ class Rating(models.Model):
     movie = models.ForeignKey(
         Movie, on_delete=models.CASCADE, related_name="ratings", null=True, blank=True
     )
+
+    rating = models.IntegerField(choices=Movie.RATING_CHOICES)
+
+class AuthorRating(models.Model):
+    spectator = models.ForeignKey(
+        Users,
+        on_delete=models.CASCADE,
+        related_name="author_ratings_given",
+        limit_choices_to={"role": "spectator"},
+    )
     author = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
-        related_name="author_ratings",
+        related_name="author_ratings_received",
         limit_choices_to={"role": "author"},
     )
     rating = models.IntegerField(choices=Movie.RATING_CHOICES)
+    comment = models.TextField(blank=True, null=True)
 
+    class Meta:
+        unique_together = ("spectator", "author")
 
+    def __str__(self):
+        return f"{self.spectator.username} → {self.author.username}: {self.rating}"
+    
 class Favorite(models.Model):
     spectator = models.ForeignKey(
         Users,

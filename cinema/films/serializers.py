@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Favorite, Movie, Rating, Users
+from .models import AuthorRating, Favorite, Movie, Rating, Users
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MovieSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    authors = UserSerializer(many=True, read_only=True)
 
     class Meta:
         model = Movie
@@ -39,25 +39,33 @@ class MovieSerializer(serializers.ModelSerializer):
             "release_date",
             "rating",
             "status",
-            "author",
+            "authors",
             "source",
             "genres",
             "original_title",
             "original_language",
         ]
-        read_only_fields = ["id", "author"]
+        read_only_fields = ["id", "authors"]
 
 
 class RatingSerializer(serializers.ModelSerializer):
     spectator = UserSerializer(read_only=True)
-    author = UserSerializer(read_only=True)
+    
     movie = MovieSerializer(read_only=True)
 
     class Meta:
         model = Rating
-        fields = ["id", "spectator", "movie", "author", "rating"]
-        read_only_fields = ["id", "spectator", "movie", "author"]
+        fields = ["id", "spectator", "movie", "rating"]
+        read_only_fields = ["id", "spectator", "movie"]
+class RatingAuthorSerializer(serializers.ModelSerializer):
+    spectator = UserSerializer(read_only=True)
+    author = UserSerializer(read_only=True)
 
+    class Meta:
+        model = AuthorRating
+        fields = ["id", "spectator", "author", "rating", "comment"]
+        read_only_fields = ["id", "spectator", "author"]
+        unique_together = ("spectator", "author")
 
 class FavoriteSerializer(serializers.ModelSerializer):
     spectator = UserSerializer(read_only=True)

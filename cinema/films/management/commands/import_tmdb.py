@@ -47,6 +47,7 @@ class Command(BaseCommand):
                 ]
 
                 # Create or get the user and movie objects
+                users = []
                 if directors:
                     director_name = directors[0]
                     username = director_name.lower().replace(" ", "_")
@@ -60,12 +61,15 @@ class Command(BaseCommand):
                             "email": f"{username}@tmdb.local",
                         },
                     )
+                    users.append(user)
+                    if created_user:
+                        self.stdout.write(self.style.SUCCESS(f"Created author: {director_name}"))
                     # Create or get the movie object
                     movie_obj, created_movie = Movie.objects.get_or_create(
+                        
                         title=title,
                         status=status,
                         release_date=release_date,
-                        author=user,
                         original_title=original_title,
                         original_language=original_language,
                         overview=overview,
@@ -75,6 +79,7 @@ class Command(BaseCommand):
                             "source": "tmdb",
                         },
                     )
+                    movie_obj.authors.add(*users)
                     # Log creation messages
                     if created_user:
                         self.stdout.write(
@@ -83,7 +88,7 @@ class Command(BaseCommand):
                     if created_movie:
                         self.stdout.write(
                             self.style.SUCCESS(
-                                f"Created movie: {title} (Director: {director_name})"
+                                f"Created movie: {title} (Director: {', '.join(directors)})"
                             )
                         )
 
