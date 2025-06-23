@@ -8,15 +8,24 @@ class Command(BaseCommand):
     help = "Import movies from TMDB"
 
     def handle(self, *args, **kwargs):
+        """
+        Imports popular movies from TMDb, creates or updates authors (directors) and movies in the database.
+        For each movie:
+            - Fetches details and genres from TMDb.
+            - Fetches director info and date of birth.
+            - Creates or updates the author (director) in the database.
+            - Creates or updates the movie and links it to the author.
+        """
         try:
             # Clear existing movies
             Movie.objects.all().delete()
+            
             # Get popular movies from TMDB
             data = get_tmdb_data("movie/popular", params={"page": 1})
             movies = data.get("results", [])
 
             for movie in movies:
-                # Get movie details from TMDB
+                # Fetch movie details from TMDB
                 movie_id = movie.get("id")
                 movie_details = get_tmdb_data(f"movie/{movie_id}")
                 title = movie_details.get("title")
@@ -39,12 +48,11 @@ class Command(BaseCommand):
                     "original_language"
                 )
 
-                # Get director information
+                # Fetch director information
                 credits = get_tmdb_data(f"movie/{movie_id}/credits")
                 crew = credits.get("crew", [])
                 directors = [person for person in crew if person["job"] == "Director"]
 
-                # Create or get the user and movie objects
                 users = []
                 if directors:
                     director = directors[0]
@@ -52,9 +60,11 @@ class Command(BaseCommand):
                     director_id = director["id"]
                     username = director_name.lower().replace(" ", "_")
 
+                    # Fetch director details for date of birth
                     director_details = get_tmdb_data(f"person/{director_id}")
                     date_of_birth = director_details.get("birthday") or "1970-01-01"
 
+                    # Create or update the author (director)
                     user, created_user = Users.objects.get_or_create(
                         username=username,
                         defaults={
@@ -74,7 +84,7 @@ class Command(BaseCommand):
                         self.stdout.write(
                             self.style.SUCCESS(f"Created author: {director_name}")
                         )
-                    # Create or get the movie object
+                    # Create or update the movie and link to author
                     movie_obj, created_movie = Movie.objects.get_or_create(
                         title=title,
                         status=status,

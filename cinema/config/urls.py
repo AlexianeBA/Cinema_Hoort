@@ -1,4 +1,25 @@
 """
+URL configuration for the Django project.
+
+This module defines the URL patterns for the project, including:
+- Admin interface
+- JWT authentication endpoints (token obtain and refresh)
+- API endpoints for movies, authors, favorites, spectators, ratings, and users via DRF viewsets
+- API authentication via browsable API login/logout
+- Logout endpoint
+
+Routers from Django REST Framework are used to automatically generate routes for the registered viewsets.
+
+Imports:
+    - Django admin and URL utilities
+    - DRF router and JWT views
+    - Application viewsets for films app
+
+Example:
+    Access the movies API at /api/movies/
+    Obtain JWT token at /api/token/
+
+
 URL configuration for config project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:

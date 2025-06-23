@@ -7,6 +7,9 @@ from .models import (Author, AuthorRating, Favorite, Movie, Rating, Spectator,
 
 
 class HasMoviesFilter(SimpleListFilter):
+    """
+    Admin filter to show authors with or without at least one movie.
+    """
     title = "has at least one movie"
     parameter_name = "has_movies"
 
@@ -24,14 +27,10 @@ class HasMoviesFilter(SimpleListFilter):
         return queryset
 
 
-class MovieInline(admin.TabularInline):
-    model = Movie
-    extra = 0
-    fields = ["title", "release_date", "status", "rating", "state"]
-    show_change_link = True
-
-
 class MovieAuthorsInline(admin.TabularInline):
+    """
+    Inline for displaying authors of a movie.
+    """
     model = Movie.authors.through
     extra = 0
     verbose_name = "Film"
@@ -41,6 +40,9 @@ class MovieAuthorsInline(admin.TabularInline):
 
 
 class MovieRatingInline(admin.TabularInline):
+    """
+    Inline for displaying ratings related to a movie.
+    """
     model = Rating
     fk_name = "movie"
     extra = 0
@@ -53,30 +55,10 @@ class MovieRatingInline(admin.TabularInline):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class SpectatorRatingMovieInline(admin.TabularInline):
-    model = Rating
-    fk_name = "spectator"
-    extra = 0
-    fields = ["movie", "rating"]
-    show_change_link = True
-
-
-class AuthorRatingInline(admin.TabularInline):
-    model = AuthorRating
-    fk_name = "author"
-    extra = 0
-    fields = ["spectator", "rating", "comment"]
-    show_change_link = True
-
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == "spectator":
-            kwargs["queryset"] = Users.objects.filter(role="spectator")
-        if db_field.name == "author":
-            kwargs["queryset"] = Users.objects.filter(role="author")
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-
 class AuthorInline(admin.TabularInline):
+    """
+    Inline for displaying authors in movie admin.
+    """
     model = Movie.authors.through
     extra = 0
     verbose_name = "Author"
@@ -85,6 +67,9 @@ class AuthorInline(admin.TabularInline):
 
 
 class FavoriteInline(admin.TabularInline):
+    """
+    Inline for displaying favorite movies of a spectator.
+    """
     model = Favorite
     fk_name = "spectator"
     extra = 0
@@ -92,6 +77,9 @@ class FavoriteInline(admin.TabularInline):
     show_change_link = True
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        """
+        Limit spectator choices to users with role 'spectator'.
+        """
         if db_field.name == "spectator":
             kwargs["queryset"] = Users.objects.filter(role="spectator")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
@@ -99,6 +87,10 @@ class FavoriteInline(admin.TabularInline):
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Author proxy model.
+    Shows only users with role 'author'.
+    """
     list_display = ["username", "email", "is_staff", "date_of_birth"]
     list_filter = [HasMoviesFilter]
     inlines = [MovieAuthorsInline]
@@ -112,8 +104,12 @@ class AuthorAdmin(admin.ModelAdmin):
 
 @admin.register(Spectator)
 class SpectatorAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Spectator proxy model.
+    Shows only users with role 'spectator'.
+    """
     list_display = ["username", "email", "is_staff"]
-    inlines = [FavoriteInline, SpectatorRatingMovieInline]
+    inlines = [FavoriteInline]
     search_fields = ["username", "email"]
 
     def get_queryset(self, request):
@@ -123,6 +119,9 @@ class SpectatorAdmin(admin.ModelAdmin):
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Movie model.
+    """
     list_display = [
         "title",
         "get_authors",
@@ -138,6 +137,9 @@ class MovieAdmin(admin.ModelAdmin):
     inlines = [MovieRatingInline, AuthorInline]
 
     def get_authors(self, obj):
+        """
+        Returns a comma-separated list of author usernames for a movie.
+        """
         return ", ".join([a.username for a in obj.authors.all()])
 
     get_authors.short_description = "Authors movie"
@@ -145,6 +147,9 @@ class MovieAdmin(admin.ModelAdmin):
 
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Rating model.
+    """
     list_display = ["spectator", "movie", "rating"]
     list_filter = ["rating"]
     search_fields = ["spectator__username", "movie__title"]
@@ -152,5 +157,8 @@ class RatingAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Favorite model.
+    """
     list_display = ["spectator", "movie"]
     search_fields = ["spectator__username", "movie__title"]

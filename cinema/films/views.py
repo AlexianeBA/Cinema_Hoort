@@ -15,11 +15,18 @@ from .serializers import (FavoriteSerializer, MovieSerializer,
 
 
 class IsAuthor(BasePermission):
+    """
+    Custom permission to only allow authors to perform certain actions.
+    """
     def has_permission(self, request, view):
         return hasattr(request.user, "role") and request.user.role == "author"
 
 
 class MovieViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing movies.
+    Provides list, retrieve, update, archive, and filter by status/source.
+    """
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
@@ -27,6 +34,9 @@ class MovieViewSet(viewsets.ModelViewSet):
     ordering_fields = ["release_date", "title"]
 
     def get_queryset(self):
+        """
+        Optionally filter movies by source (manual or tmdb).
+        """
         queryset = super().get_queryset()
         source = self.request.query_params.get("source")
         if source in ["manual", "tmdb"]:
@@ -34,12 +44,18 @@ class MovieViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_permissions(self):
+        """
+        Restrict update, partial_update, and destroy to authenticated authors.
+        """
         if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsAuthor()]
         return super().get_permissions()
 
     @action(detail=False, methods=["get"], url_path="by-status")
     def get_movies_by_status(self, request):
+        """
+        List movies filtered by status.
+        """
         status_param = request.query_params.get("status")
         movies = (
             self.queryset.filter(status=status_param) if status_param else self.queryset
@@ -48,6 +64,9 @@ class MovieViewSet(viewsets.ModelViewSet):
         return Response({"count": len(serializer.data), "results": serializer.data})
 
     def retrieve(self, request, pk=None):
+        """
+        Retrieve a single movie by ID.
+        """
         try:
             movie = self.get_object()
             serializer = self.get_serializer(movie)
@@ -58,6 +77,9 @@ class MovieViewSet(viewsets.ModelViewSet):
             )
 
     def update(self, request, pk=None):
+        """
+        Update a movie instance.
+        """
         movie = self.get_object()
         serializer = self.get_serializer(movie, data=request.data, partial=True)
         if serializer.is_valid():
@@ -74,6 +96,9 @@ class MovieViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated, IsAuthor],
     )
     def archive_movie(self, request, pk=None):
+        """
+        Archive a movie (set its state to 'archived').
+        """
         movie = self.get_object()
         movie.state = "archived"
         movie.save()
@@ -88,10 +113,16 @@ class MovieViewSet(viewsets.ModelViewSet):
 
 
 class AuthorViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing authors (users with role 'author').
+    """
     queryset = Users.objects.filter(role="author")
     serializer_class = UserSerializer
 
     def get_queryset(self):
+        """
+        Optionally filter authors by source (manual or tmdb).
+        """
         queryset = super().get_queryset()
         source = self.request.query_params.get("source")
         if source in ["manual", "tmdb"]:
@@ -99,16 +130,25 @@ class AuthorViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_permissions(self):
+        """
+        Restrict update, partial_update, and destroy to authenticated authors.
+        """
         if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsAuthor()]
         return super().get_permissions()
 
     def retrieve(self, request, pk=None):
+        """
+        Retrieve a single author by ID.
+        """
         author = self.get_object()
         serializer = self.get_serializer(author)
         return Response({"author": serializer.data})
 
     def update(self, request, pk=None):
+        """
+        Update an author instance.
+        """
         author = self.get_object()
         serializer = self.get_serializer(author, data=request.data, partial=True)
         if serializer.is_valid():
@@ -119,6 +159,9 @@ class AuthorViewSet(viewsets.ModelViewSet):
         )
 
     def destroy(self, request, pk=None):
+        """
+        Delete an author if they have no associated movies.
+        """
         author = self.get_object()
         if Movie.objects.filter(authors=author).exists():
             return Response(
@@ -134,20 +177,32 @@ class AuthorViewSet(viewsets.ModelViewSet):
 
 
 class SpectatorViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing spectators (users with role 'spectator').
+    """
     queryset = Users.objects.filter(role="spectator")
     serializer_class = UserSerializer
 
     def get_permissions(self):
+        """
+        Restrict update, partial_update, and destroy to authenticated users.
+        """
         if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated()]
         return super().get_permissions()
 
     def retrieve(self, request, pk=None):
+        """
+        Retrieve a single spectator by ID.
+        """
         spectator = self.get_object()
         serializer = self.get_serializer(spectator)
         return Response({"spectator": serializer.data})
 
     def update(self, request, pk=None):
+        """
+        Update a spectator instance.
+        """
         spectator = self.get_object()
         serializer = self.get_serializer(spectator, data=request.data, partial=True)
         if serializer.is_valid():
@@ -160,6 +215,9 @@ class SpectatorViewSet(viewsets.ModelViewSet):
         )
 
     def destroy(self, request, pk=None):
+        """
+        Delete a spectator.
+        """
         spectator = self.get_object()
         spectator.delete()
         return Response(
@@ -168,6 +226,9 @@ class SpectatorViewSet(viewsets.ModelViewSet):
 
 
 class FavoriteViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing favorite movies of spectators.
+    """
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
 
@@ -178,6 +239,9 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def add_movie_to_favorites(self, request, pk=None):
+        """
+        Add a movie to the authenticated user's favorites.
+        """
         movie = Movie.objects.get(pk=pk)
         favorite, created = Favorite.objects.get_or_create(
             spectator=request.user, movie=movie
@@ -197,6 +261,9 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def remove_movie_from_favorites(self, request, pk=None):
+        """
+        Remove a movie from the authenticated user's favorites.
+        """
         movie = Movie.objects.get(pk=pk)
         favorite = Favorite.objects.filter(spectator=request.user, movie=movie).first()
         if favorite:
@@ -221,12 +288,18 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def get_favorite_movies(self, request):
+        """
+        List all favorite movies for the authenticated user.
+        """
         favorites = Favorite.objects.filter(spectator=request.user)
         serializer = FavoriteSerializer(favorites, many=True)
         return Response({"favorites": serializer.data}, status=status.HTTP_200_OK)
 
 
 class RatingViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing ratings on movies and authors.
+    """
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
 
@@ -237,6 +310,9 @@ class RatingViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def add_rating_to_movie(self, request, pk=None):
+        """
+        Add a rating to a movie by the authenticated user.
+        """
         movie = Movie.objects.get(pk=pk)
         rating_value = request.data.get("rating")
         if not rating_value:
@@ -262,6 +338,9 @@ class RatingViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def add_rating_to_author(self, request, pk=None):
+        """
+        Add a rating to an author by the authenticated user.
+        """
         author = Users.objects.get(pk=pk)
         rating_value = request.data.get("rating")
         if not rating_value:
@@ -280,6 +359,9 @@ class RatingViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing users (registration and details).
+    """
     queryset = Users.objects.all()
     serializer_class = UserSerializer
 
@@ -290,6 +372,9 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[AllowAny],
     )
     def register(self, request):
+        """
+        Register a new user.
+        """
         data = request.data.copy()
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
@@ -307,9 +392,15 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class LogoutView(APIView):
+    """
+    API view for logging out a user by blacklisting their refresh token.
+    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """
+        Blacklist the provided refresh token to log out the user.
+        """
         refresh_token = request.data.get("refresh")
         if not refresh_token:
             return Response(

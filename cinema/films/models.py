@@ -5,6 +5,9 @@ from django.db import models
 
 
 class Users(AbstractUser):
+    """
+    Custom user model with roles (author, spectator), bio, avatar, source, and date of birth.
+    """
     ROLE_CHOICES = [
         ("spectator", "Spectator"),
         ("author", "Author"),
@@ -20,29 +23,25 @@ class Users(AbstractUser):
     date_of_birth = models.DateField(null=True, blank=True)
 
     def is_author(self):
+        """Return True if the user is an author."""
         return self.role == "author"
 
     def is_spectator(self):
+        """Return True if the user is a spectator."""
         return self.role == "spectator"
 
 
 class Movie(models.Model):
+    """
+    Model representing a movie, with title, overview, release date, rating, status, authors, and other metadata.
+    """
     STATUS_CHOICES = [
         ("released", "Released"),
         ("post_production", "Post Production"),
         ("planned", "Planned"),
     ]
     RATING_CHOICES = [
-        (1, "1"),
-        (2, "2"),
-        (3, "3"),
-        (4, "4"),
-        (5, "5"),
-        (6, "6"),
-        (7, "7"),
-        (8, "8"),
-        (9, "9"),
-        (10, "10"),
+        [(i, str(i)) for i in range(1, 11)]
     ]
     SOURCE_CHOICES = [
         ("manual", "Manual"),
@@ -74,6 +73,9 @@ class Movie(models.Model):
 
 
 class Rating(models.Model):
+    """
+    Model representing a rating given by a spectator to a movie.
+    """
     spectator = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
@@ -86,8 +88,14 @@ class Rating(models.Model):
 
     rating = models.IntegerField(choices=Movie.RATING_CHOICES)
 
+    def __str__(self):
+        return f"{self.spectator.username} rated {self.movie.title}: {self.rating}"
+
 
 class AuthorRating(models.Model):
+    """
+    Model representing a rating and comment given by a spectator to an author.
+    """
     spectator = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
@@ -111,6 +119,9 @@ class AuthorRating(models.Model):
 
 
 class Favorite(models.Model):
+    """
+    Model representing a favorite movie for a spectator.
+    """
     spectator = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
@@ -127,6 +138,9 @@ class Favorite(models.Model):
 
 
 class Author(Users):
+    """
+    Proxy model for authors (users with role 'author').
+    """
     class Meta:
         proxy = True
         verbose_name = "Author"
@@ -134,6 +148,9 @@ class Author(Users):
 
 
 class Spectator(Users):
+    """
+    Proxy model for spectators (users with role 'spectator').
+    """
     class Meta:
         proxy = True
         verbose_name = "Spectator"
