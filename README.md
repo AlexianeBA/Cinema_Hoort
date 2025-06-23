@@ -3,6 +3,8 @@
 ## Cinema
 Création d'une application Django nommée **Cinema**.
 
+---
+
 ## Pré-requis techniques
 
 - Python ≥ 3.12  
@@ -10,6 +12,61 @@ Création d'une application Django nommée **Cinema**.
 - Django REST Framework ≥ 3.15.2  
 - PostgreSQL  
 - Docker + docker-compose  
+
+---
+
+## 🚀 Lancer le projet
+
+### 1. Cloner le dépôt
+```bash
+git clone https://github.com/AlexianeBA/Cinema_Hoort/
+cd Cinema
+```
+
+### 2. Configurer les variables d’environnement
+
+Crée un fichier `.env` dans le dossier `cinema/` (exemple minimal) :
+```
+TMDB_API_KEY=your-secret-key
+DJANGO_SECRET_KEY=your-secret-key
+DB_NAME=''
+DB_USER=''
+DB_PASSWORD=''
+DB_HOST=''
+DB_PORT=
+```
+
+### 3. Construire et démarrer les conteneurs Docker
+
+```bash
+docker-compose up --build
+```
+
+### 4. Appliquer les migrations Django
+
+```bash
+docker-compose exec web poetry run python manage.py migrate
+```
+
+### 5. Créer un superutilisateur (optionnel, pour l’admin Django)
+
+```bash
+docker-compose exec web poetry run python manage.py createsuperuser
+```
+
+### 6. Accéder à l’application
+
+- **API** : [http://localhost:8000/](http://localhost:8000/)
+- **Admin Django** : [http://localhost:8000/admin/](http://localhost:8000/admin/)
+
+
+### 7. Arrêter les conteneurs
+
+```bash
+docker-compose down
+```
+
+---
 
 ## Authentification
 
