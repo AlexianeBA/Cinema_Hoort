@@ -2,9 +2,19 @@ from rest_framework import serializers
 
 from .models import AuthorRating, Favorite, Movie, Rating, Users
 
+class FavoriteMovieSerializer(serializers.ModelSerializer):
+    movie = serializers.PrimaryKeyRelatedField(read_only=True)
 
+    class Meta:
+        model = Favorite
+        fields = ["movie"]
 class UserSerializer(serializers.ModelSerializer):
-    favorite_movies = serializers.SerializerMethodField()
+    favorite_movies = FavoriteMovieSerializer(
+        source="spectator_favorite",
+        many=True,
+        read_only=True
+    )
+ 
 
     class Meta:
         model = Users
@@ -18,13 +28,10 @@ class UserSerializer(serializers.ModelSerializer):
             "source",
             "favorite_movies",
             "password",
+            'date_of_birth'
         ]
         read_only_fields = ["id"]
         extra_kwargs = {"password": {"write_only": True}}
-
-    def get_favorite_movies(self, obj):
-        favorites = Favorite.objects.filter(spectator=obj)
-        return MovieSerializer([fav.movie for fav in favorites], many=True).data
 
 
 class MovieSerializer(serializers.ModelSerializer):

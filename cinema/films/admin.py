@@ -84,10 +84,10 @@ class FavoriteInline(admin.TabularInline):
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ["username", "email", "is_staff"]
+    list_display = ["username", "email", "is_staff", "date_of_birth"]
     list_filter = [HasMoviesFilter]
     inlines = [MovieAuthorsInline]
-    
+
     search_fields = ["username", "email"]
     def get_queryset(self, request):
         qs = super().get_queryset(request)

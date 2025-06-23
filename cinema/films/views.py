@@ -1,4 +1,4 @@
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.permissions import (AllowAny, BasePermission,
                                         IsAuthenticated)
@@ -19,9 +19,19 @@ class IsAuthor(BasePermission):
 class MovieViewSet(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    search_fields = ["title", "overview"]
+    ordering_fields = ["release_date", "title"]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        source = self.request.query_params.get("source")
+        if source in ["manual", "tmdb"]:
+            queryset = queryset.filter(source=source)
+        return queryset
+    
     def get_permissions(self):
-        if self.action in ['update', 'partial_update']:
+        if self.action in ['update', 'partial_update', 'destroy']:
             return [IsAuthenticated(), IsAuthor()]
         return super().get_permissions()
 
@@ -33,6 +43,7 @@ class MovieViewSet(viewsets.ModelViewSet):
         )
         serializer = self.get_serializer(movies, many=True)
         return Response({"count": len(serializer.data), "results": serializer.data})
+
 
     def retrieve(self, request, pk=None):
         try:
@@ -81,6 +92,13 @@ class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.filter(role="author")
     serializer_class = UserSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        source = self.request.query_params.get("source")
+        if source in ["manual", "tmdb"]:
+            queryset = queryset.filter(source=source)
+        return queryset
+    
     def get_permissions(self):
         if self.action in ['update', 'partial_update', 'destroy']:
             return [IsAuthenticated(), IsAuthor()]

@@ -43,14 +43,20 @@ class Command(BaseCommand):
                 credits = get_tmdb_data(f"movie/{movie_id}/credits")
                 crew = credits.get("crew", [])
                 directors = [
-                    person["name"] for person in crew if person["job"] == "Director"
+                    person for person in crew if person["job"] == "Director"
                 ]
 
                 # Create or get the user and movie objects
                 users = []
                 if directors:
-                    director_name = directors[0]
+                    director = directors[0]
+                    director_name = director['name']
+                    director_id = director["id"]
                     username = director_name.lower().replace(" ", "_")
+
+                    director_details = get_tmdb_data(f"person/{director_id}")
+                    date_of_birth = director_details.get("birthday") or "1970-01-01"
+
                     user, created_user = Users.objects.get_or_create(
                         username=username,
                         defaults={
@@ -59,8 +65,12 @@ class Command(BaseCommand):
                             "bio": "",
                             "avatar": None,
                             "email": f"{username}@tmdb.local",
+                            "date_of_birth": date_of_birth,
                         },
                     )
+                    if not created_user and user.date_of_birth != date_of_birth:
+                        user.date_of_birth = date_of_birth
+                        user.save()
                     users.append(user)
                     if created_user:
                         self.stdout.write(self.style.SUCCESS(f"Created author: {director_name}"))
@@ -81,19 +91,15 @@ class Command(BaseCommand):
                     )
                     movie_obj.authors.add(*users)
                     # Log creation messages
-                    if created_user:
-                        self.stdout.write(
-                            self.style.SUCCESS(f"Created author: {director_name}")
-                        )
                     if created_movie:
                         self.stdout.write(
                             self.style.SUCCESS(
-                                f"Created movie: {title} (Director: {', '.join(directors)})"
+                                f"Created movie: {title} (Director: {', '.join([d['name'] for d in directors])})"
                             )
                         )
 
                 print(
-                    f"Title: {title}, Release Date: {release_date}, Overview: {overview}, Vote Average: {vote_average}, Directors: {', '.join(directors)}, User: {user.username}, Movie source: {movie_obj.source}, Status: {movie_obj.status}, genres: {', '.join(genre_names)}"
+                    f"Title: {title}, Release Date: {release_date}, Overview: {overview}, Vote Average: {vote_average}, Directors: {', '.join([d['name'] for d in directors])}, User: {user.username}, Movie source: {movie_obj.source}, Status: {movie_obj.status}, genres: {', '.join(genre_names)}, date_of_birth: {date_of_birth}"
                 )
 
         except Exception as e:

@@ -17,6 +17,7 @@ class Users(AbstractUser):
     bio = models.TextField(null=True, blank=True)
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
     source = models.CharField(max_length=100, choices=SOURCE_CHOICES, default="tmdb")
+    date_of_birth = models.DateField(null=True, blank=True)
 
     def is_author(self):
         return self.role == "author"
