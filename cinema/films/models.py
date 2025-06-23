@@ -8,6 +8,7 @@ class Users(AbstractUser):
     """
     Custom user model with roles (author, spectator), bio, avatar, source, and date of birth.
     """
+
     ROLE_CHOICES = [
         ("spectator", "Spectator"),
         ("author", "Author"),
@@ -35,6 +36,7 @@ class Movie(models.Model):
     """
     Model representing a movie, with title, overview, release date, rating, status, authors, and other metadata.
     """
+
     STATUS_CHOICES = [
         ("released", "Released"),
         ("post_production", "Post Production"),
@@ -50,7 +52,7 @@ class Movie(models.Model):
         (7, "7"),
         (8, "8"),
         (9, "9"),
-        (10, "10")
+        (10, "10"),
     ]
     SOURCE_CHOICES = [
         ("manual", "Manual"),
@@ -85,6 +87,7 @@ class Rating(models.Model):
     """
     Model representing a rating given by a spectator to a movie.
     """
+
     spectator = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
@@ -105,6 +108,7 @@ class AuthorRating(models.Model):
     """
     Model representing a rating and comment given by a spectator to an author.
     """
+
     spectator = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
@@ -131,6 +135,7 @@ class Favorite(models.Model):
     """
     Model representing a favorite movie for a spectator.
     """
+
     spectator = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
@@ -150,6 +155,7 @@ class Author(Users):
     """
     Proxy model for authors (users with role 'author').
     """
+
     class Meta:
         proxy = True
         verbose_name = "Author"
@@ -160,6 +166,7 @@ class Spectator(Users):
     """
     Proxy model for spectators (users with role 'spectator').
     """
+
     class Meta:
         proxy = True
         verbose_name = "Spectator"

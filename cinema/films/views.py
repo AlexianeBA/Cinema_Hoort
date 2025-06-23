@@ -18,6 +18,7 @@ class IsAuthor(BasePermission):
     """
     Custom permission to only allow authors to perform certain actions.
     """
+
     def has_permission(self, request, view):
         return hasattr(request.user, "role") and request.user.role == "author"
 
@@ -27,6 +28,7 @@ class MovieViewSet(viewsets.ModelViewSet):
     ViewSet for managing movies.
     Provides list, retrieve, update, archive, and filter by status/source.
     """
+
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
@@ -116,6 +118,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing authors (users with role 'author').
     """
+
     queryset = Users.objects.filter(role="author")
     serializer_class = UserSerializer
 
@@ -180,6 +183,7 @@ class SpectatorViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing spectators (users with role 'spectator').
     """
+
     queryset = Users.objects.filter(role="spectator")
     serializer_class = UserSerializer
 
@@ -229,6 +233,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing favorite movies of spectators.
     """
+
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
 
@@ -300,6 +305,7 @@ class RatingViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing ratings on movies and authors.
     """
+
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
 
@@ -362,6 +368,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing users (registration and details).
     """
+
     queryset = Users.objects.all()
     serializer_class = UserSerializer
 
@@ -395,6 +402,7 @@ class LogoutView(APIView):
     """
     API view for logging out a user by blacklisting their refresh token.
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):

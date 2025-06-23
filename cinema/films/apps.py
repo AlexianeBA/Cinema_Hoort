@@ -9,5 +9,6 @@ class FilmsConfig(AppConfig):
         default_auto_field (str): Specifies the type of auto-created primary key field.
         name (str): The full Python path to the application.
     """
+
     default_auto_field = "django.db.models.BigAutoField"
     name = "films"

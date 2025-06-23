@@ -4,7 +4,8 @@ from .models import AuthorRating, Favorite, Movie, Rating, Users
 
 
 class FavoriteMovieSerializer(serializers.ModelSerializer):
-    ''' Serializer for favorite movies of a spectator. '''
+    """Serializer for favorite movies of a spectator."""
+
     movie = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
@@ -13,7 +14,8 @@ class FavoriteMovieSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    ''' Serializer for user details, including favorite movies. '''
+    """Serializer for user details, including favorite movies."""
+
     favorite_movies = FavoriteMovieSerializer(
         source="spectator_favorite", many=True, read_only=True
     )
@@ -37,7 +39,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MovieSerializer(serializers.ModelSerializer):
-    """ Serializer for movie details, including authors and genres. """
+    """Serializer for movie details, including authors and genres."""
+
     authors = UserSerializer(many=True, read_only=True)
 
     class Meta:
@@ -62,6 +65,7 @@ class RatingSerializer(serializers.ModelSerializer):
     """
     Serializer for the Rating model, including spectator and movie details.
     """
+
     spectator = UserSerializer(read_only=True)
 
     movie = MovieSerializer(read_only=True)
@@ -76,6 +80,7 @@ class RatingAuthorSerializer(serializers.ModelSerializer):
     """
     Serializer for the AuthorRating model, including spectator and author details.
     """
+
     spectator = UserSerializer(read_only=True)
     author = UserSerializer(read_only=True)
 
@@ -90,6 +95,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
     """
     Serializer for the Favorite model, including spectator and movie details.
     """
+
     spectator = UserSerializer(read_only=True)
     movie = MovieSerializer(read_only=True)
 
