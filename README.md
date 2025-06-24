@@ -67,14 +67,18 @@ docker-compose run web python manage.py createsuperuser
 docker-compose up web
 ```
 
-
 ### 8. Accéder à l’application
 
 - **API** : [http://localhost:8000/](http://localhost:8000/)
 - **Admin Django** : [http://localhost:8000/admin/](http://localhost:8000/admin/)
 
 
-### 8. Arrêter les conteneurs
+### 9. Lancer les tests et la couverture de code
+```bash
+docker-compose run web poetry run pytest --cov=films --cov-report=html
+```
+
+### 10. Arrêter les conteneurs
 
 ```bash
 docker-compose down
