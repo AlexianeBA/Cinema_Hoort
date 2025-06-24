@@ -36,31 +36,45 @@ DB_HOST=''
 DB_PORT=
 ```
 
-### 3. Construire et démarrer les conteneurs Docker
+### 3. Construire et démarrer le conteneurs Docker de la database
 
 ```bash
-docker-compose up --build
+docker-compose up -d db
 ```
 
 ### 4. Appliquer les migrations Django
 
 ```bash
-docker-compose exec web poetry run python manage.py migrate
+docker-compose run web python manage.py makemigrations
+docker-compose run web python manage.py migrate
 ```
 
-### 5. Créer un superutilisateur (optionnel, pour l’admin Django)
+### 5. Importer les données via l'appel à l'API TMDB
 
 ```bash
-docker-compose exec web poetry run python manage.py createsuperuser
+docker-compose run web python manage.py import_tmdb
 ```
 
-### 6. Accéder à l’application
+### 6. Créer un superutilisateur (optionnel, pour l’admin Django)
+
+```bash
+docker-compose run web python manage.py createsuperuser
+```
+
+### 7. Lancer le serveur web
+
+```bash
+docker-compose up web
+```
+
+
+### 8. Accéder à l’application
 
 - **API** : [http://localhost:8000/](http://localhost:8000/)
 - **Admin Django** : [http://localhost:8000/admin/](http://localhost:8000/admin/)
 
 
-### 7. Arrêter les conteneurs
+### 8. Arrêter les conteneurs
 
 ```bash
 docker-compose down
@@ -169,3 +183,4 @@ Authorization: Bearer <votre_token_jwt>
 
 - Accès à l’admin Django : `http://localhost:8000/admin/`
 - Pour toute action protégée, un token JWT valide est requis.
+
