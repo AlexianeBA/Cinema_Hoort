@@ -18,7 +18,7 @@ class Command(BaseCommand):
         """
         try:
             # Clear existing movies
-            Movie.objects.all().delete()
+            Movie.objects.filter(source="tmdb").delete()
             # Get popular movies from TMDB
             data = get_tmdb_data("movie/popular", params={"page": 1})
             movies = data.get("results", [])
